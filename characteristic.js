@@ -1,5 +1,6 @@
 var util = require('util');
 var bleno = require('bleno');
+var mraa = require('mraa');
 
 var BlenoCharacteristic = bleno.Characteristic;
 
@@ -12,6 +13,9 @@ var FirstCharacteristic = function() {
   });
   this._value = new Buffer("OFF", "utf-8");
   console.log("Characterisitic's value: "+this._value);
+  this._light = new mraa.Gpio(3);
+  this._light.dir(mraa.DIR_OUT);
+  this._light.write(0);
   this._updateValueCallback = null;
 };
 
@@ -27,6 +31,12 @@ FirstCharacteristic.prototype.onReadRequest = function(offset, callback) {
 // BLE write request
 FirstCharacteristic.prototype.onWriteRequest = function(data, offset, withoutResponse, callback) {
   this._value = data;
+  if (data == "ON") {
+    this._light.write(1);
+  }
+  else {
+    this._light.write(0);
+  }
   console.log('FirstCharacteristic - onWriteRequest: value = ' + this._value.toString("utf-8"));
 
   if (this._updateValueCallback) {
